@@ -108,7 +108,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfYfkaFEjvWL-lKcdM5w9cLPs-KnLtjre5OJeQ2-EsEv139-Xah21YpokyWzZyh_Obfw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-VGr3sbZSIkROXk6CEe21rMxE1WPwSpp5wVwYYX8q_gDUWJrvARNb7y33dUdNOHi5Gw/exec";
 
 function sendData(sonucDegeri) {
     const operator = document.getElementById('operator').value;
@@ -148,7 +148,6 @@ function sendData(sonucDegeri) {
         body: JSON.stringify(data)
     });
 
-    // Anında başarı mesajı gösterimi:
     setTimeout(() => {
         durumDiv.style.color = "#4ade80";
         durumDiv.innerText = "Test sonucu başarıyla kaydedildi ve e-posta gönderildi!";
@@ -157,7 +156,6 @@ function sendData(sonucDegeri) {
     }, 400);
 }
 
-// QR Kamera Tarayıcı Fonksiyonu
 function startScanner() {
     const readerDiv = document.getElementById('reader');
     readerDiv.style.display = "block";
