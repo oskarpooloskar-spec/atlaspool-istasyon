@@ -36,12 +36,11 @@
         <div class="form-group">
             <label>Operatör Adı:</label>
             <input type="text" id="operator" placeholder="Adınızı giriniz">
-
         </div>
         <div class="form-group">
             <label>P NO (Seri No):</label>
-            <button type="button" onclick="startScanner()" style="margin-top: 5px; width: 100%;">Kameradan Tara</button>
-<div id="reader" style="width: 300px; display:none; margin-top: 10px;"></div>
+            <button type="button" onclick="startScanner()" style="margin-top: 5px; margin-bottom: 5px; width: 100%; padding: 8px; cursor: pointer;">Kameradan Tara</button>
+            <div id="reader" style="width: 300px; display:none; margin-top: 10px;"></div>
             <input type="text" id="pNo" placeholder="Seri no okutun">
         </div>
     </div>
@@ -95,112 +94,51 @@
             </select>
         </div>
         <div class="form-group" style="display: flex; align-items: flex-end; gap: 20px; padding-bottom: 5px;">
-            <label style="cursor: pointer;"><input type="checkbox" id="testKapama" value="Evet" style="transform: scale(1.3);"> Test Kapama</label>
-            <label style="cursor: pointer;"><input type="checkbox" id="rekor" value="Evet" style="transform: scale(1.3);"> Rekor</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="testKapama" style="transform: scale(1.3);"> Test Kapama</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="rekor" style="transform: scale(1.3);"> Rekor</label>
         </div>
     </div>
 
     <div class="btn-group">
-      <button class="action-btn btn-onay" onclick="sendData('ONAYLANDI')">TEST ONAYLANDI</button>
-        <button class="action-btn btn-ret" onclick="kaydet('Ret')">TEST RET / HATALI</button>
+        <button class="action-btn btn-onay" onclick="sendData('ONAYLANDI')">TEST ONAYLANDI</button>
+        <button class="action-btn btn-ret" onclick="sendData('RET / HATALI')">TEST RET / HATALI</button>
     </div>
 
     <div id="durum"></div>
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzbewR1QirlDQ-dt-Vdx-hvYEHnxgOkpMi2UR1VpEyblErqPS145EfzPw9-UvqWHgDO_w/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
 
-    function kaydet(testSonucu) {
-        const operator = document.getElementById('operator').value;
-        const pNo = document.getElementById('pNo').value;
-        const model = document.getElementById('model').value;
-        const hp = document.getElementById('hp').value;
-        const voltaj = document.getElementById('voltaj').value;
-        const montaj = document.getElementById('montaj').value;
-        const testKapama = document.getElementById('testKapama').checked ? "Evet" : "Hayır";
-        const rekor = document.getElementById('rekor').checked ? "Evet" : "Hayır";
+function sendData(sonucDegeri) {
+    const operator = document.getElementById('operator').value;
+    const pno = document.getElementById('pNo').value;
+    const model = document.getElementById('model').value;
+    const hp = document.getElementById('hp').value;
+    const voltaj = document.getElementById('voltaj').value;
+    const montaj = document.getElementById('montaj').value;
+    const testKapama = document.getElementById('testKapama').checked ? "Evet" : "Hayır";
+    const rekor = document.getElementById('rekor').checked ? "Evet" : "Hayır";
 
-        if (!operator || !pNo || !model || !hp || !voltaj) {
-            alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alanlarını eksiksiz doldurun!");
-            return;
-        }
-
-        const tarih = new Date().toISOString().split('T')[0];
-        const motorDetay = `${model} - ${hp} - ${voltaj}`;
-
-        const data = {
-            tarih: tarih,
-            pNo: pNo,
-            motor: motorDetay,
-            assemblyStatus: montaj,
-            testResult: testSonucu,
-            testKapama: testKapama,
-            rekor: rekor,
-            operator: operator
-        };
-
-        const durumDiv = document.getElementById('durum');
-        durumDiv.style.color = "#ffc107";
-        durumDiv.innerText = "Gönderiliyor...";
-
-        fetch(WEB_APP_URL, {
-    method: 'POST',
-    body: JSON.stringify(data)
-})
-.then(response => response.json())
-.then(result => {
-    const durumDiv = document.getElementById('durum');
-    durumDiv.style.color = "#4ade80";
-    durumDiv.innerText = "Başarıyla Kaydedildi!";
-})
-.catch(error => {
-    console.error('Hata:', error);
-    const durumDiv = document.getElementById('durum');
-    durumDiv.style.color = "#ef4444";
-    durumDiv.innerText = "Kayıt Başarısız!";
-});
-.then(response => response.json())
-.then(result => {
-    const durumDiv = document.getElementById('durum');
-    durumDiv.style.color = "#4ade80";
-    durumDiv.innerText = "Başarıyla Kaydedildi!";
-})
-.catch(error => {
-    console.error('Hata:', error);
-    const durumDiv = document.getElementById('durum');
-    durumDiv.style.color = "#ef4444";
-    durumDiv.innerText = "Kayıt Başarısız!";
-});
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(() => {
-            durumDiv.style.color = "#4ade80";
-            durumDiv.innerText = "Kayıt başarıyla Google Sheets'e eklendi!";
-            
-            document.getElementById('pNo').value = "";
-            document.getElementById('pNo').focus();
-        })
-        .catch(() => {
-            durumDiv.style.color = "#f87171";
-            durumDiv.innerText = "Kayıt gönderilirken hata oluştu!";
-        });
+    if (!operator || !pno || !model || !hp || !voltaj) {
+        alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alanlarını eksiksiz doldurun!");
+        return;
     }
-<script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
 
-function sendData(sonucDegeri) {
+    const durumDiv = document.getElementById('durum');
+    durumDiv.style.color = "#ffc107";
+    durumDiv.innerText = "Gönderiliyor...";
+
     const data = {
-        pno: document.getElementById('p_no') ? document.getElementById('p_no').value : "",
-        operator: document.getElementById('operator') ? document.getElementById('operator').value : "",
-        model: document.getElementById('model') ? document.getElementById('model').value : "",
-        hp: document.getElementById('hp') ? document.getElementById('hp').value : "",
-        voltaj: document.getElementById('voltaj') ? document.getElementById('voltaj').value : "",
-        montaj: document.getElementById('montaj') ? document.getElementById('montaj').value : "",
+        pno: pno,
+        operator: operator,
+        model: model,
+        hp: hp,
+        voltaj: voltaj,
+        montaj: montaj,
         sonuc: sonucDegeri,
-        testKapama: document.getElementById('testKapama') ? document.getElementById('testKapama').value : "Boş",
-        rekor: document.getElementById('rekor') ? document.getElementById('rekor').value : "Boş"
+        testKapama: testKapama,
+        rekor: rekor
     };
 
     fetch(SCRIPT_URL, {
@@ -210,39 +148,14 @@ function sendData(sonucDegeri) {
         body: JSON.stringify(data)
     })
     .then(() => {
-        alert("Test sonucu başarıyla kaydedildi ve e-posta gönderildi!");
+        durumDiv.style.color = "#4ade80";
+        durumDiv.innerText = "Test sonucu başarıyla kaydedildi ve e-posta gönderildi!";
+        document.getElementById('pNo').value = "";
+        document.getElementById('pNo').focus();
     })
     .catch((err) => {
-        alert("Hata oluştu: " + err);
-    });
-}
-</script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
-
-function sendData(sonucDegeri) {
-    const data = {
-        pno: document.getElementById('p_no') ? document.getElementById('p_no').value : "",
-        operator: document.getElementById('operator') ? document.getElementById('operator').value : "",
-        model: document.getElementById('model') ? document.getElementById('model').value : "",
-        hp: document.getElementById('hp') ? document.getElementById('hp').value : "",
-        voltaj: document.getElementById('voltaj') ? document.getElementById('voltaj').value : "",
-        montaj: document.getElementById('montaj') ? document.getElementById('montaj').value : "",
-        sonuc: sonucDegeri,
-        testKapama: document.getElementById('testKapama') ? document.getElementById('testKapama').value : "Boş",
-        rekor: document.getElementById('rekor') ? document.getElementById('rekor').value : "Boş"
-    };
-
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    })
-    .then(() => {
-        alert("Test sonucu başarıyla kaydedildi ve e-posta gönderildi!");
-    })
-    .catch((err) => {
-        alert("Hata oluştu: " + err);
+        durumDiv.style.color = "#ef4444";
+        durumDiv.innerText = "Hata oluştu: " + err;
     });
 }
 </script>
