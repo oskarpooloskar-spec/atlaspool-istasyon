@@ -108,7 +108,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtjuuRcs04g3ECB60wKqEyrHv96moxNoEC-2ewhVu-e9INBHPLQ1Jy-xI2-V3veDNyAA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfYfkaFEjvWL-lKcdM5w9cLPs-KnLtjre5OJeQ2-EsEv139-Xah21YpokyWzZyh_Obfw/exec";
 
 function sendData(sonucDegeri) {
     const operator = document.getElementById('operator').value;
@@ -121,4 +121,63 @@ function sendData(sonucDegeri) {
     const rekor = document.getElementById('rekor').checked ? "Evet" : "Hayır";
 
     if (!operator || !pno || !model || !hp || !voltaj) {
-        alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alan
+        alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alanlarını eksiksiz doldurun!");
+        return;
+    }
+
+    const durumDiv = document.getElementById('durum');
+    durumDiv.style.color = "#ffc107";
+    durumDiv.innerText = "Gönderiliyor...";
+
+    const data = {
+        pno: pno,
+        operator: operator,
+        model: model,
+        hp: hp,
+        voltaj: voltaj,
+        montaj: montaj,
+        sonuc: sonucDegeri,
+        testKapama: testKapama,
+        rekor: rekor
+    };
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    // Anında başarı mesajı gösterimi:
+    setTimeout(() => {
+        durumDiv.style.color = "#4ade80";
+        durumDiv.innerText = "Test sonucu başarıyla kaydedildi ve e-posta gönderildi!";
+        document.getElementById('pNo').value = "";
+        document.getElementById('pNo').focus();
+    }, 400);
+}
+
+// QR Kamera Tarayıcı Fonksiyonu
+function startScanner() {
+    const readerDiv = document.getElementById('reader');
+    readerDiv.style.display = "block";
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText, decodedResult) => {
+            document.getElementById('pNo').value = decodedText;
+            html5QrCode.stop().then(() => {
+                readerDiv.style.display = "none";
+            }).catch(err => { console.log(err); });
+        },
+        (errorMessage) => { }
+    ).catch(err => {
+        alert("Kamera başlatılamadı: " + err);
+        readerDiv.style.display = "none";
+    });
+}
+</script>
+
+</body>
+</html>
