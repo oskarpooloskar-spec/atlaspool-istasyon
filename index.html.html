@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlaspool İstasyon Üretim Girişi</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; background: #1e1e1e; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #ffffff; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #b0bec5; }
+        input[type="text"], select { width: 100%; padding: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        
+        .row { display: flex; gap: 10px; }
+        .row .form-group { flex: 1; }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 25px; }
+        button.action-btn { flex: 1; padding: 16px; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-onay { background: #198754; }
+        .btn-onay:hover { background: #157347; }
+        .btn-ret { background: #dc3545; }
+        .btn-ret:hover { background: #bb2d3b; }
+        
+        #durum { margin-top: 20px; text-align: center; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Atlaspool İstasyon Girişi</h2>
+
+    <div class="row">
+        <div class="form-group">
+            <label>Operatör Adı:</label>
+            <input type="text" id="operator" placeholder="Adınızı giriniz">
+        </div>
+        <div class="form-group">
+            <label>P NO (Seri No):</label>
+            <input type="text" id="pNo" placeholder="Seri no okutun">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Pompa / Motor Modeli:</label>
+        <select id="model">
+            <option value="">Model Seçiniz...</option>
+            <option value="Best">Best</option>
+            <option value="Florida">Florida</option>
+            <option value="Strong">Strong</option>
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="form-group">
+            <label>Motor Gücü (HP):</label>
+            <select id="hp">
+                <option value="">HP Seçiniz...</option>
+                <option value="0.50 HP">0.50 HP</option>
+                <option value="0.75 HP">0.75 HP</option>
+                <option value="1 HP">1 HP</option>
+                <option value="1.5 HP">1.5 HP</option>
+                <option value="2 HP">2 HP</option>
+                <option value="3 HP">3 HP</option>
+                <option value="3,5 HP">3,5 HP</option>
+                <option value="4,5 HP">4,5 HP</option>
+                <option value="5,5 HP">5,5 HP</option>
+                <option value="7,50 HP">7,50 HP</option>
+                <option value="10,0 HP">10,0 HP</option>
+                <option value="12,5 HP">12,5 HP</option>
+                <option value="15,0 HP">15,0 HP</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Elektrik Tipi (Voltaj):</label>
+            <select id="voltaj">
+                <option value="">Seçiniz...</option>
+                <option value="Monofaze (220V)">Monofaze (220V)</option>
+                <option value="Trifaze (380V)">Trifaze (380V)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group">
+            <label>Montaj Durumu:</label>
+            <select id="montaj">
+                <option value="Tamamlandı">Tamamlandı</option>
+                <option value="Yapılıyor">Yapılıyor</option>
+            </select>
+        </div>
+        <div class="form-group" style="display: flex; align-items: flex-end; gap: 20px; padding-bottom: 5px;">
+            <label style="cursor: pointer;"><input type="checkbox" id="testKapama" value="Evet" style="transform: scale(1.3);"> Test Kapama</label>
+            <label style="cursor: pointer;"><input type="checkbox" id="rekor" value="Evet" style="transform: scale(1.3);"> Rekor</label>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="action-btn btn-onay" onclick="kaydet('Onaylandı')">TEST ONAYLANDI</button>
+        <button class="action-btn btn-ret" onclick="kaydet('Ret')">TEST RET / HATALI</button>
+    </div>
+
+    <div id="durum"></div>
+</div>
+
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzbewR1QirlDQ-dt-Vdx-hvYEHnxgOkpMi2UR1VpEyblErqPS145EfzPw9-UvqWHgDO_w/exec";
+
+    function kaydet(testSonucu) {
+        const operator = document.getElementById('operator').value;
+        const pNo = document.getElementById('pNo').value;
+        const model = document.getElementById('model').value;
+        const hp = document.getElementById('hp').value;
+        const voltaj = document.getElementById('voltaj').value;
+        const montaj = document.getElementById('montaj').value;
+        const testKapama = document.getElementById('testKapama').checked ? "Evet" : "Hayır";
+        const rekor = document.getElementById('rekor').checked ? "Evet" : "Hayır";
+
+        if (!operator || !pNo || !model || !hp || !voltaj) {
+            alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alanlarını eksiksiz doldurun!");
+            return;
+        }
+
+        const tarih = new Date().toISOString().split('T')[0];
+        const motorDetay = `${model} - ${hp} - ${voltaj}`;
+
+        const data = {
+            tarih: tarih,
+            pNo: pNo,
+            motor: motorDetay,
+            assemblyStatus: montaj,
+            testResult: testSonucu,
+            testKapama: testKapama,
+            rekor: rekor,
+            operator: operator
+        };
+
+        const durumDiv = document.getElementById('durum');
+        durumDiv.style.color = "#ffc107";
+        durumDiv.innerText = "Gönderiliyor...";
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            durumDiv.style.color = "#4ade80";
+            durumDiv.innerText = "Kayıt başarıyla Google Sheets'e eklendi!";
+            
+            document.getElementById('pNo').value = "";
+            document.getElementById('pNo').focus();
+        })
+        .catch(() => {
+            durumDiv.style.color = "#f87171";
+            durumDiv.innerText = "Kayıt gönderilirken hata oluştu!";
+        });
+    }
+</script>
+
+</body>
+</html>
