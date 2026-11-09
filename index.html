@@ -108,7 +108,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtjuuRcs04g3ECB60wKqEyrHv96moxNoEC-2ewhVu-e9INBHPLQ1Jy-xI2-V3veDNyAA/exec";
 
 function sendData(sonucDegeri) {
     const operator = document.getElementById('operator').value;
@@ -121,44 +121,4 @@ function sendData(sonucDegeri) {
     const rekor = document.getElementById('rekor').checked ? "Evet" : "Hayır";
 
     if (!operator || !pno || !model || !hp || !voltaj) {
-        alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alanlarını eksiksiz doldurun!");
-        return;
-    }
-
-    const durumDiv = document.getElementById('durum');
-    durumDiv.style.color = "#ffc107";
-    durumDiv.innerText = "Gönderiliyor...";
-
-    const data = {
-        pno: pno,
-        operator: operator,
-        model: model,
-        hp: hp,
-        voltaj: voltaj,
-        montaj: montaj,
-        sonuc: sonucDegeri,
-        testKapama: testKapama,
-        rekor: rekor
-    };
-
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    })
-    .then(() => {
-        durumDiv.style.color = "#4ade80";
-        durumDiv.innerText = "Test sonucu başarıyla kaydedildi ve e-posta gönderildi!";
-        document.getElementById('pNo').value = "";
-        document.getElementById('pNo').focus();
-    })
-    .catch((err) => {
-        durumDiv.style.color = "#ef4444";
-        durumDiv.innerText = "Hata oluştu: " + err;
-    });
-}
-</script>
-
-</body>
-</html>
+        alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alan
