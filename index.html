@@ -188,6 +188,30 @@
         });
     }
 </script>
+    <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
+
+function sendData(durum) {
+    const data = {
+        operator: document.getElementById('operator') ? document.getElementById('operator').value : "",
+        p_no: document.getElementById('p_no') ? document.getElementById('p_no').value : "",
+        durum: durum
+    };
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        alert("Veri Sheets'e gönderildi: " + durum);
+    })
+    .catch((err) => {
+        alert("Hata oluştu: " + err);
+    });
+}
+</script>
 
 </body>
 </html>
