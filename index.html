@@ -191,12 +191,36 @@
     <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
 
-function sendData(durum) {
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztTHq3RDldosePl9CGNgMrhfNymlcFpx12qXLL3KrJQOyhZ80_ZI-QtG2e3OK5IVFhtw/exec";
+
+function sendData(sonucDegeri) {
     const data = {
+        pno: document.getElementById('p_no') ? document.getElementById('p_no').value : "",
         operator: document.getElementById('operator') ? document.getElementById('operator').value : "",
-        p_no: document.getElementById('p_no') ? document.getElementById('p_no').value : "",
-        durum: durum
+        model: document.getElementById('model') ? document.getElementById('model').value : "",
+        hp: document.getElementById('hp') ? document.getElementById('hp').value : "",
+        voltaj: document.getElementById('voltaj') ? document.getElementById('voltaj').value : "",
+        montaj: document.getElementById('montaj') ? document.getElementById('montaj').value : "",
+        sonuc: sonucDegeri,
+        testKapama: document.getElementById('testKapama') ? document.getElementById('testKapama').value : "Boş",
+        rekor: document.getElementById('rekor') ? document.getElementById('rekor').value : "Boş"
     };
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        alert("Test sonucu başarıyla kaydedildi ve e-posta gönderildi!");
+    })
+    .catch((err) => {
+        alert("Hata oluştu: " + err);
+    });
+}
+</script>
 
     fetch(SCRIPT_URL, {
         method: "POST",
