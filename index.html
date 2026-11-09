@@ -141,14 +141,21 @@
         durumDiv.innerText = "Gönderiliyor...";
 
         fetch(WEB_APP_URL, {
-            method: 'POST',
-            fetch(WEB_APP_URL, {
     method: 'POST',
-    headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
-    },
     body: JSON.stringify(data)
 })
+.then(response => response.json())
+.then(result => {
+    const durumDiv = document.getElementById('durum');
+    durumDiv.style.color = "#4ade80";
+    durumDiv.innerText = "Başarıyla Kaydedildi!";
+})
+.catch(error => {
+    console.error('Hata:', error);
+    const durumDiv = document.getElementById('durum');
+    durumDiv.style.color = "#ef4444";
+    durumDiv.innerText = "Kayıt Başarısız!";
+});
 .then(response => response.json())
 .then(result => {
     const durumDiv = document.getElementById('durum');
