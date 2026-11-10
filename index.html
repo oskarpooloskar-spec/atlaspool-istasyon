@@ -2,18 +2,24 @@
 <html lang="tr">
 <head>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlaspool İstasyon Üretim Girişi</title>
     <style>
         body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; }
-        .container { max-width: 650px; margin: 0 auto; background: #1e1e1e; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { text-align: center; color: #ffffff; margin-bottom: 20px; }
+        .main-layout { display: flex; gap: 25px; max-width: 1350px; margin: 0 auto; align-items: flex-start; }
         
+        /* Sol Panel: Veri Girişi */
+        .left-panel { flex: 1.1; background: #1e1e1e; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* Sağ Panel: Canlı Üretim Özeti & Grafik */
+        .right-panel { flex: 0.9; background: #1e1e1e; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
+        h2 { text-align: center; color: #ffffff; margin-top: 0; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #b0bec5; }
         input[type="text"], select { width: 100%; padding: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        
         .row { display: flex; gap: 10px; }
         .row .form-group { flex: 1; }
 
@@ -23,92 +29,135 @@
         .btn-onay:hover { background: #157347; }
         .btn-ret { background: #dc3545; }
         .btn-ret:hover { background: #bb2d3b; }
-        
         #durum { margin-top: 20px; text-align: center; font-weight: bold; font-size: 16px; }
+
+        /* Sağ Panel Kartları */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
+        .stat-card { background: #262626; padding: 15px; border-radius: 8px; text-align: center; border-bottom: 3px solid #444; }
+        .stat-card.total { border-color: #0d6efd; }
+        .stat-card.ok { border-color: #198754; }
+        .stat-card.fail { border-color: #dc3545; }
+        .stat-num { font-size: 32px; font-weight: bold; color: #fff; margin: 5px 0; }
+        .stat-label { font-size: 13px; color: #b0bec5; text-transform: uppercase; }
+        .chart-box { position: relative; height: 280px; width: 100%; }
+
+        @media (max-width: 900px) {
+            .main-layout { flex-direction: column; }
+            .left-panel, .right-panel { width: 100%; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Atlaspool İstasyon Girişi</h2>
+<div class="main-layout">
+    <!-- SOL TARAF: OPERATÖR VERİ GİRİŞİ -->
+    <div class="left-panel">
+        <h2>Atlaspool İstasyon Girişi</h2>
 
-    <div class="row">
-        <div class="form-group">
-            <label>Operatör Adı:</label>
-            <input type="text" id="operator" placeholder="Adınızı giriniz">
+        <div class="row">
+            <div class="form-group">
+                <label>Operatör Adı:</label>
+                <input type="text" id="operator" placeholder="Adınızı giriniz">
+            </div>
+            <div class="form-group">
+                <label>P NO (Seri No):</label>
+                <button type="button" onclick="startScanner()" style="margin-top: 5px; margin-bottom: 5px; width: 100%; padding: 8px; cursor: pointer; background:#333; color:#fff; border:1px solid #555; border-radius:4px;">Kameradan Tara</button>
+                <div id="reader" style="width: 100%; display:none; margin-top: 10px;"></div>
+                <input type="text" id="pNo" placeholder="Seri no okutun">
+            </div>
         </div>
-        <div class="form-group">
-            <label>P NO (Seri No):</label>
-            <button type="button" onclick="startScanner()" style="margin-top: 5px; margin-bottom: 5px; width: 100%; padding: 8px; cursor: pointer;">Kameradan Tara</button>
-            <div id="reader" style="width: 300px; display:none; margin-top: 10px;"></div>
-            <input type="text" id="pNo" placeholder="Seri no okutun">
-        </div>
-    </div>
 
-    <div class="form-group">
-        <label>Pompa / Motor Modeli:</label>
-        <select id="model">
-            <option value="">Model Seçiniz...</option>
-            <option value="Best">Best</option>
-            <option value="Florida">Florida</option>
-            <option value="Storm">Storm</option>
-        </select>
-    </div>
-
-    <div class="row">
         <div class="form-group">
-            <label>Motor Gücü (HP):</label>
-            <select id="hp">
-                <option value="">HP Seçiniz...</option>
-                <option value="0.50 HP">0.50 HP</option>
-                <option value="0.75 HP">0.75 HP</option>
-                <option value="1 HP">1 HP</option>
-                <option value="1.5 HP">1.5 HP</option>
-                <option value="2 HP">2 HP</option>
-                <option value="3 HP">3 HP</option>
-                <option value="3,5 HP">3,5 HP</option>
-                <option value="4,5 HP">4,5 HP</option>
-                <option value="5,5 HP">5,5 HP</option>
-                <option value="7,50 HP">7,50 HP</option>
-                <option value="10,0 HP">10,0 HP</option>
-                <option value="12,5 HP">12,5 HP</option>
-                <option value="15,0 HP">15,0 HP</option>
+            <label>Pompa / Motor Modeli:</label>
+            <select id="model">
+                <option value="">Model Seçiniz...</option>
+                <option value="Best">Best</option>
+                <option value="Florida">Florida</option>
+                <option value="Storm">Storm</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>Elektrik Tipi (Voltaj):</label>
-            <select id="voltaj">
-                <option value="">Seçiniz...</option>
-                <option value="Monofaze (220V)">Monofaze (220V)</option>
-                <option value="Trifaze (380V)">Trifaze (380V)</option>
-            </select>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Motor Gücü (HP):</label>
+                <select id="hp">
+                    <option value="">HP Seçiniz...</option>
+                    <option value="0.50 HP">0.50 HP</option>
+                    <option value="0.75 HP">0.75 HP</option>
+                    <option value="1 HP">1 HP</option>
+                    <option value="1.5 HP">1.5 HP</option>
+                    <option value="2 HP">2 HP</option>
+                    <option value="3 HP">3 HP</option>
+                    <option value="3,5 HP">3,5 HP</option>
+                    <option value="4,5 HP">4,5 HP</option>
+                    <option value="5,5 HP">5,5 HP</option>
+                    <option value="7,50 HP">7,50 HP</option>
+                    <option value="10,0 HP">10,0 HP</option>
+                    <option value="12,5 HP">12,5 HP</option>
+                    <option value="15,0 HP">15,0 HP</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Elektrik Tipi (Voltaj):</label>
+                <select id="voltaj">
+                    <option value="">Seçiniz...</option>
+                    <option value="Monofaze (220V)">Monofaze (220V)</option>
+                    <option value="Trifaze (380V)">Trifaze (380V)</option>
+                </select>
+            </div>
         </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Montaj Durumu:</label>
+                <select id="montaj">
+                    <option value="Tamamlandı">Tamamlandı</option>
+                    <option value="Yapılıyor">Yapılıyor</option>
+                </select>
+            </div>
+            <div class="form-group" style="display: flex; align-items: flex-end; gap: 20px; padding-bottom: 5px;">
+                <label style="cursor: pointer;"><input type="checkbox" id="testKapama" style="transform: scale(1.3);"> Test Kapama</label>
+                <label style="cursor: pointer;"><input type="checkbox" id="rekor" style="transform: scale(1.3);"> Rekor</label>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="action-btn btn-onay" onclick="sendData('ONAYLANDI')">TEST ONAYLANDI</button>
+            <button class="action-btn btn-ret" onclick="sendData('RET / HATALI')">TEST RET / HATALI</button>
+        </div>
+
+        <div id="durum"></div>
     </div>
 
-    <div class="row">
-        <div class="form-group">
-            <label>Montaj Durumu:</label>
-            <select id="montaj">
-                <option value="Tamamlandı">Tamamlandı</option>
-                <option value="Yapılıyor">Yapılıyor</option>
-            </select>
+    <!-- SAĞ TARAF: GÜNLÜK ÜRETİM ÖZETİ VE GRAFİK -->
+    <div class="right-panel">
+        <h2>Bugünkü Üretim Özeti</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-label">Toplam Test</div>
+                <div class="stat-num" id="statToplam">-</div>
+            </div>
+            <div class="stat-card ok">
+                <div class="stat-label">Onaylanan</div>
+                <div class="stat-num" id="statOnay" style="color: #4ade80;">-</div>
+            </div>
+            <div class="stat-card fail">
+                <div class="stat-label">Ret / Hatalı</div>
+                <div class="stat-num" id="statRet" style="color: #f87171;">-</div>
+            </div>
         </div>
-        <div class="form-group" style="display: flex; align-items: flex-end; gap: 20px; padding-bottom: 5px;">
-            <label style="cursor: pointer;"><input type="checkbox" id="testKapama" style="transform: scale(1.3);"> Test Kapama</label>
-            <label style="cursor: pointer;"><input type="checkbox" id="rekor" style="transform: scale(1.3);"> Rekor</label>
+
+        <div class="chart-box">
+            <canvas id="uretimGrafik"></canvas>
         </div>
+        <p style="text-align: center; font-size: 12px; color: #777; margin-top: 15px;">Veriler her 30 saniyede bir veya yeni test girişinde güncellenir.</p>
     </div>
-
-    <div class="btn-group">
-        <button class="action-btn btn-onay" onclick="sendData('ONAYLANDI')">TEST ONAYLANDI</button>
-        <button class="action-btn btn-ret" onclick="sendData('RET / HATALI')">TEST RET / HATALI</button>
-    </div>
-
-    <div id="durum"></div>
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-VGr3sbZSIkROXk6CEe21rMxE1WPwSpp5wVwYYX8q_gDUWJrvARNb7y33dUdNOHi5Gw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywG99MV5PU8vNuy6IAN0lpAmnl3lq9RCl5VpfLYb8fGqt7mk6G6c2jrFYpC_l3ZFVgrQ/exec";
+let myChart = null;
 
 function sendData(sonucDegeri) {
     const operator = document.getElementById('operator').value;
@@ -130,15 +179,9 @@ function sendData(sonucDegeri) {
     durumDiv.innerText = "Gönderiliyor...";
 
     const data = {
-        pno: pno,
-        operator: operator,
-        model: model,
-        hp: hp,
-        voltaj: voltaj,
-        montaj: montaj,
-        sonuc: sonucDegeri,
-        testKapama: testKapama,
-        rekor: rekor
+        pno: pno, operator: operator, model: model,
+        hp: hp, voltaj: voltaj, montaj: montaj,
+        sonuc: sonucDegeri, testKapama: testKapama, rekor: rekor
     };
 
     fetch(SCRIPT_URL, {
@@ -150,11 +193,61 @@ function sendData(sonucDegeri) {
 
     setTimeout(() => {
         durumDiv.style.color = "#4ade80";
-        durumDiv.innerText = "Test sonucu başarıyla kaydedildi ve e-posta gönderildi!";
+        durumDiv.innerText = "Test sonucu başarıyla kaydedildi!";
         document.getElementById('pNo').value = "";
         document.getElementById('pNo').focus();
-    }, 400);
+        verileriCek();
+    }, 800);
 }
+
+function verileriCek() {
+    fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('statToplam').innerText = data.toplam;
+            document.getElementById('statOnay').innerText = data.onay;
+            document.getElementById('statRet').innerText = data.ret;
+            grafikGuncelle(data.modeller);
+        })
+        .catch(err => console.log("Veri çekme hatası:", err));
+}
+
+function grafikGuncelle(modeller) {
+    const ctx = document.getElementById('uretimGrafik').getContext('2d');
+    const labels = Object.keys(modeller);
+    const values = Object.values(modeller);
+
+    if (myChart) {
+        myChart.destroy();
+    }
+
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels.length ? labels : ['Henüz Veri Yok'],
+            datasets: [{
+                label: 'Bugünkü Üretim Adedi',
+                data: values.length ? values : [0],
+                backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#0dcaf0'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#e0e0e0' } }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, color: '#b0bec5' }, grid: { color: '#333' } },
+                x: { ticks: { color: '#b0bec5' }, grid: { display: false } }
+            }
+        }
+    });
+}
+
+verileriCek();
+setInterval(verileriCek, 30000);
 
 function startScanner() {
     const readerDiv = document.getElementById('reader');
@@ -163,19 +256,16 @@ function startScanner() {
     html5QrCode.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText, decodedResult) => {
+        (decodedText) => {
             document.getElementById('pNo').value = decodedText;
-            html5QrCode.stop().then(() => {
-                readerDiv.style.display = "none";
-            }).catch(err => { console.log(err); });
+            html5QrCode.stop().then(() => { readerDiv.style.display = "none"; });
         },
-        (errorMessage) => { }
+        () => {}
     ).catch(err => {
         alert("Kamera başlatılamadı: " + err);
         readerDiv.style.display = "none";
     });
 }
 </script>
-
 </body>
 </html>
