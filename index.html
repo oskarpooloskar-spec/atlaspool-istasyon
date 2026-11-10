@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlaspool Pompa Test İstasyonu</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- QR / Kamera Tarayıcı Kütüphanesi -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { background-color: #0b1120; color: #f8fafc; font-family: 'Inter', sans-serif; }
@@ -26,7 +23,7 @@
         <!-- Ana İçerik: İki Sütunlu Yapı -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- SOL TARAF: Operatör Veri Giriş Formu (5 Sütun) -->
+            <!-- SOL TARAF: Operatör Veri Giriş Formu -->
             <div class="lg:col-span-5 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
                 <form id="testForm" class="space-y-4">
                     
@@ -39,7 +36,6 @@
                                 📷 Kameradan Tara
                             </button>
                         </div>
-                        <!-- Kamera Görüntü Alanı -->
                         <div id="reader" class="mt-3 hidden rounded-lg overflow-hidden border border-slate-700"></div>
                     </div>
 
@@ -49,23 +45,23 @@
                         <input type="text" id="operator" required placeholder="Örn: Mehmet Ali" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
                     </div>
 
-                    <!-- Pompa / Motor Modeli & Motor Gücü (HP) -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-1">Pompa / Motor Modeli</label>
-                            <select id="model" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-                                <option value="FLORİDA">FLORİDA</option>
-                                <option value="BEST">BEST</option>
-                                <option value="STORM">STORM</option>
-                                <option value="BÜYÜK MOTOR">BÜYÜK MOTOR</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-1">Motor Gücü (HP)</label>
-                            <select id="guc" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-                                <!-- Otomatik dolacak -->
-                            </select>
-                        </div>
+                    <!-- Pompa / Motor Modeli -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Pompa / Motor Modeli</label>
+                        <select id="model" required onchange="gucGuncelle()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                            <option value="FLORİDA">FLORİDA</option>
+                            <option value="BEST">BEST</option>
+                            <option value="STORM">STORM</option>
+                            <option value="BÜYÜK MOTOR">BÜYÜK MOTOR</option>
+                        </select>
+                    </div>
+
+                    <!-- Motor Gücü (HP) - Kesin Görünür Alan -->
+                    <div>
+                        <label class="block text-sm font-medium text-cyan-400 mb-1">Motor Gücü (HP)</label>
+                        <select id="guc" required class="w-full bg-slate-950 border border-cyan-500 rounded-lg p-2.5 text-white font-bold focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                            <!-- JavaScript ile dolacak -->
+                        </select>
                     </div>
 
                     <!-- Elektrik Tipi (Voltaj) -->
@@ -99,10 +95,6 @@
                         </div>
                     </div>
 
-                    <p class="text-center text-xs text-amber-400 font-medium pt-1">
-                        Operatör ve P NO alanlarını doldurup test sonucunu seçin.
-                    </p>
-
                     <!-- Onay / Ret Butonları -->
                     <div class="grid grid-cols-2 gap-3 pt-2">
                         <button type="button" onclick="veriyiGonder('ONAY')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg cursor-pointer">
@@ -115,7 +107,7 @@
                 </form>
             </div>
 
-            <!-- SAĞ TARAF: Canlı Üretim Özeti & Grafik Paneli (7 Sütun) -->
+            <!-- SAĞ TARAF: Canlı Üretim Özeti & Grafik Paneli -->
             <div class="lg:col-span-7 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
@@ -154,40 +146,34 @@
         let uretimChart = null;
         let html5QrCode = null;
 
-        // İstediğin tam model ve HP güç seçenekleri eşlemesi
-        const modelGucSecenekleri = {
+        const motorGucListesi = {
             "FLORİDA": ["0.50 HP", "0.75 HP", "1 HP", "1.50 HP"],
             "BEST": ["0.75 HP", "1 HP", "1.50 HP", "2.0 HP", "3.0 HP"],
             "STORM": ["3.5 HP", "4.5 HP", "5.5 HP"],
             "BÜYÜK MOTOR": ["7.5 HP", "10 HP", "12.5 HP", "15 HP"]
         };
 
-        function gucSecenekleriniGuncelle() {
-            const modelSelect = document.getElementById('model');
+        function gucGuncelle() {
+            const modelSecimi = document.getElementById('model').value;
             const gucSelect = document.getElementById('guc');
-            const secilenModel = modelSelect.value;
             
             gucSelect.innerHTML = '';
-            if (secilenModel && modelGucSecenekleri[secilenModel]) {
-                modelGucSecenekleri[secilenModel].forEach(guc => {
-                    const option = document.createElement('option');
-                    option.value = guc;
-                    option.textContent = guc;
-                    gucSelect.appendChild(option);
+            
+            if (motorGucListesi[modelSecimi]) {
+                motorGucListesi[modelSecimi].forEach(gucDegeri => {
+                    let opt = document.createElement('option');
+                    opt.value = gucDegeri;
+                    opt.textContent = gucDegeri;
+                    gucSelect.appendChild(opt);
                 });
             }
         }
 
-        // Sayfa yüklendiğinde çalışacak dinleyiciler
-        document.addEventListener("DOMContentLoaded", function() {
-            const modelSelect = document.getElementById('model');
-            modelSelect.addEventListener('change', gucSecenekleriniGuncelle);
-            
-            // İlk açılışta FLORİDA güçlerini yükle
-            gucSecenekleriniGuncelle();
+        window.onload = function() {
+            gucGuncelle();
             verileriCek();
             setInterval(verileriCek, 30000);
-        });
+        };
 
         function kamerayiAc() {
             const readerDiv = document.getElementById('reader');
@@ -299,10 +285,4 @@
             } finally {
                 setTimeout(() => {
                     status.innerText = "Sistem Hazır";
-                    status.className = "text-sm font-medium px-3 py-1 rounded-full bg-slate-800 text-slate-300 mt-2 md:mt-0 border border-slate-700";
-                }, 3000);
-            }
-        }
-    </script>
-</body>
-</html>
+                    status.className = "text-sm font-medium px-3 py-1 rounded-full bg-slate-800 text-slate-300 mt-2 md:mt-0 border border
