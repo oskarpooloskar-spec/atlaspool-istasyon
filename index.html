@@ -1,271 +1,308 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atlaspool İstasyon Üretim Girişi</title>
+    <title>Atlaspool Pompa Test İstasyonu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- QR / Kamera Tarayıcı Kütüphanesi -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; }
-        .main-layout { display: flex; gap: 25px; max-width: 1350px; margin: 0 auto; align-items: flex-start; }
-        
-        /* Sol Panel: Veri Girişi */
-        .left-panel { flex: 1.1; background: #1e1e1e; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        
-        /* Sağ Panel: Canlı Üretim Özeti & Grafik */
-        .right-panel { flex: 0.9; background: #1e1e1e; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-
-        h2 { text-align: center; color: #ffffff; margin-top: 0; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #b0bec5; }
-        input[type="text"], select { width: 100%; padding: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        .row { display: flex; gap: 10px; }
-        .row .form-group { flex: 1; }
-
-        .btn-group { display: flex; gap: 15px; margin-top: 25px; }
-        button.action-btn { flex: 1; padding: 16px; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-onay { background: #198754; }
-        .btn-onay:hover { background: #157347; }
-        .btn-ret { background: #dc3545; }
-        .btn-ret:hover { background: #bb2d3b; }
-        #durum { margin-top: 20px; text-align: center; font-weight: bold; font-size: 16px; }
-
-        /* Sağ Panel Kartları */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
-        .stat-card { background: #262626; padding: 15px; border-radius: 8px; text-align: center; border-bottom: 3px solid #444; }
-        .stat-card.total { border-color: #0d6efd; }
-        .stat-card.ok { border-color: #198754; }
-        .stat-card.fail { border-color: #dc3545; }
-        .stat-num { font-size: 32px; font-weight: bold; color: #fff; margin: 5px 0; }
-        .stat-label { font-size: 13px; color: #b0bec5; text-transform: uppercase; }
-        .chart-box { position: relative; height: 280px; width: 100%; }
-
-        @media (max-width: 900px) {
-            .main-layout { flex-direction: column; }
-            .left-panel, .right-panel { width: 100%; box-sizing: border-box; }
-        }
+        body { background-color: #0b1120; color: #f8fafc; font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
+<body class="min-h-screen p-4 md:p-6">
 
-<div class="main-layout">
-    <!-- SOL TARAF: OPERATÖR VERİ GİRİŞİ -->
-    <div class="left-panel">
-        <h2>Atlaspool İstasyon Girişi</h2>
+    <div class="max-w-7xl mx-auto">
+        <!-- Üst Bilgi -->
+        <header class="mb-6 flex flex-col md:flex-row justify-between items-center bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-lg">
+            <h1 class="text-xl md:text-2xl font-bold text-cyan-400">Atlaspool Pompa Test İstasyonu</h1>
+            <div id="status" class="text-sm font-medium px-3 py-1 rounded-full bg-slate-800 text-slate-300 mt-2 md:mt-0 border border-slate-700">Sistem Hazır</div>
+        </header>
 
-        <div class="row">
-            <div class="form-group">
-                <label>Operatör Adı:</label>
-                <input type="text" id="operator" placeholder="Adınızı giriniz">
+        <!-- Ana İçerik: İki Sütunlu Yapı -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- SOL TARAF: Operatör Veri Giriş Formu (5 Sütun) -->
+            <div class="lg:col-span-5 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
+                <form id="testForm" class="space-y-4">
+                    
+                    <!-- P NO (Seri No) + Kameradan Tara -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">P NO (Seri No)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="pno" required placeholder="86000000082673" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-semibold focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                            <button type="button" onclick="kamerayiAc()" class="bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-cyan-300 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition cursor-pointer">
+                                📷 Kameradan Tara
+                            </button>
+                        </div>
+                        <!-- Kamera Görüntü Alanı -->
+                        <div id="reader" class="mt-3 hidden rounded-lg overflow-hidden border border-slate-700"></div>
+                    </div>
+
+                    <!-- Operatör Adı -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Operatör Adı</label>
+                        <input type="text" id="operator" required placeholder="Örn: Mehmet Ali" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                    </div>
+
+                    <!-- Pompa / Motor Modeli & Motor Gücü (HP) -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Pompa / Motor Modeli</label>
+                            <select id="model" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                                <option value="FLORİDA">FLORİDA</option>
+                                <option value="BEST">BEST</option>
+                                <option value="STORM">STORM</option>
+                                <option value="BÜYÜK MOTOR">BÜYÜK MOTOR</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Motor Gücü (HP)</label>
+                            <select id="guc" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                                <!-- Otomatik dolacak -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Elektrik Tipi (Voltaj) -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Elektrik Tipi (Voltaj)</label>
+                        <select id="voltaj" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                            <option value="Monofaze (220V)">Monofaze (220V)</option>
+                            <option value="Trifaze (380V)">Trifaze (380V)</option>
+                        </select>
+                    </div>
+
+                    <!-- Montaj Durumu & Ek Durumlar -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Montaj Durumu</label>
+                            <select id="montaj" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                                <option value="Tamamlandı">Tamamlandı</option>
+                                <option value="Beklemede">Beklemede</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Ek durumlar</label>
+                            <div class="flex gap-2">
+                                <label class="flex-1 flex items-center gap-2 bg-slate-950 border border-slate-700 rounded-lg p-2.5 cursor-pointer text-xs font-medium">
+                                    <input type="checkbox" id="testKapama" class="accent-cyan-500 w-4 h-4"> Test Kapama
+                                </label>
+                                <label class="flex-1 flex items-center gap-2 bg-slate-950 border border-slate-700 rounded-lg p-2.5 cursor-pointer text-xs font-medium">
+                                    <input type="checkbox" id="rekor" class="accent-cyan-500 w-4 h-4"> Rekor
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-xs text-amber-400 font-medium pt-1">
+                        Operatör ve P NO alanlarını doldurup test sonucunu seçin.
+                    </p>
+
+                    <!-- Onay / Ret Butonları -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button type="button" onclick="veriyiGonder('ONAY')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg cursor-pointer">
+                            TEST ONAYLANDI
+                        </button>
+                        <button type="button" onclick="veriyiGonder('RET')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg cursor-pointer">
+                            TEST RET / HATALI
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label>P NO (Seri No):</label>
-                <button type="button" onclick="startScanner()" style="margin-top: 5px; margin-bottom: 5px; width: 100%; padding: 8px; cursor: pointer; background:#333; color:#fff; border:1px solid #555; border-radius:4px;">Kameradan Tara</button>
-                <div id="reader" style="width: 100%; display:none; margin-top: 10px;"></div>
-                <input type="text" id="pNo" placeholder="Seri no okutun">
+
+            <!-- SAĞ TARAF: Canlı Üretim Özeti & Grafik Paneli (7 Sütun) -->
+            <div class="lg:col-span-7 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+                        <h2 class="text-lg font-semibold text-cyan-400">Bugünkü Üretim Özeti</h2>
+                        <button onclick="verileriCek()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-md text-slate-300 transition cursor-pointer">Yenile</button>
+                    </div>
+                    
+                    <!-- Sayaç Kartları -->
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
+                            <div class="text-xs text-slate-400 font-medium">Toplam Test</div>
+                            <div id="toplamSayac" class="text-2xl font-bold text-white mt-1">0</div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
+                            <div class="text-xs text-emerald-400 font-medium">Onaylanan</div>
+                            <div id="onaySayac" class="text-2xl font-bold text-emerald-400 mt-1">0</div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
+                            <div class="text-xs text-rose-400 font-medium">Ret / Hatalı</div>
+                            <div id="retSayac" class="text-2xl font-bold text-rose-400 mt-1">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafik Alanı -->
+                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 relative h-72">
+                    <canvas id="uretimGrafik"></canvas>
+                </div>
             </div>
+
         </div>
-
-        <div class="form-group">
-            <label>Pompa / Motor Modeli:</label>
-            <select id="model">
-                <option value="">Model Seçiniz...</option>
-                <option value="Best">Best</option>
-                <option value="Florida">Florida</option>
-                <option value="Storm">Storm</option>
-            </select>
-        </div>
-
-        <div class="row">
-            <div class="form-group">
-                <label>Motor Gücü (HP):</label>
-                <select id="hp">
-                    <option value="">HP Seçiniz...</option>
-                    <option value="0.50 HP">0.50 HP</option>
-                    <option value="0.75 HP">0.75 HP</option>
-                    <option value="1 HP">1 HP</option>
-                    <option value="1.5 HP">1.5 HP</option>
-                    <option value="2 HP">2 HP</option>
-                    <option value="3 HP">3 HP</option>
-                    <option value="3,5 HP">3,5 HP</option>
-                    <option value="4,5 HP">4,5 HP</option>
-                    <option value="5,5 HP">5,5 HP</option>
-                    <option value="7,50 HP">7,50 HP</option>
-                    <option value="10,0 HP">10,0 HP</option>
-                    <option value="12,5 HP">12,5 HP</option>
-                    <option value="15,0 HP">15,0 HP</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Elektrik Tipi (Voltaj):</label>
-                <select id="voltaj">
-                    <option value="">Seçiniz...</option>
-                    <option value="Monofaze (220V)">Monofaze (220V)</option>
-                    <option value="Trifaze (380V)">Trifaze (380V)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="form-group">
-                <label>Montaj Durumu:</label>
-                <select id="montaj">
-                    <option value="Tamamlandı">Tamamlandı</option>
-                    <option value="Yapılıyor">Yapılıyor</option>
-                </select>
-            </div>
-            <div class="form-group" style="display: flex; align-items: flex-end; gap: 20px; padding-bottom: 5px;">
-                <label style="cursor: pointer;"><input type="checkbox" id="testKapama" style="transform: scale(1.3);"> Test Kapama</label>
-                <label style="cursor: pointer;"><input type="checkbox" id="rekor" style="transform: scale(1.3);"> Rekor</label>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button class="action-btn btn-onay" onclick="sendData('ONAYLANDI')">TEST ONAYLANDI</button>
-            <button class="action-btn btn-ret" onclick="sendData('RET / HATALI')">TEST RET / HATALI</button>
-        </div>
-
-        <div id="durum"></div>
     </div>
 
-    <!-- SAĞ TARAF: GÜNLÜK ÜRETİM ÖZETİ VE GRAFİK -->
-    <div class="right-panel">
-        <h2>Bugünkü Üretim Özeti</h2>
-        
-        <div class="stats-grid">
-            <div class="stat-card total">
-                <div class="stat-label">Toplam Test</div>
-                <div class="stat-num" id="statToplam">-</div>
-            </div>
-            <div class="stat-card ok">
-                <div class="stat-label">Onaylanan</div>
-                <div class="stat-num" id="statOnay" style="color: #4ade80;">-</div>
-            </div>
-            <div class="stat-card fail">
-                <div class="stat-label">Ret / Hatalı</div>
-                <div class="stat-num" id="statRet" style="color: #f87171;">-</div>
-            </div>
-        </div>
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYwiqTCEsgAfp6vLeCStVvlxY9qKzCW1lx-Ciavb2lte_LSoDYgIrFqdHu7GbnxrvXFg/exec";
+        let uretimChart = null;
+        let html5QrCode = null;
 
-        <div class="chart-box">
-            <canvas id="uretimGrafik"></canvas>
-        </div>
-        <p style="text-align: center; font-size: 12px; color: #777; margin-top: 15px;">Veriler her 30 saniyede bir veya yeni test girişinde güncellenir.</p>
-    </div>
-</div>
+        // İstediğin tam model ve HP güç seçenekleri eşlemesi
+        const modelGucSecenekleri = {
+            "FLORİDA": ["0.50 HP", "0.75 HP", "1 HP", "1.50 HP"],
+            "BEST": ["0.75 HP", "1 HP", "1.50 HP", "2.0 HP", "3.0 HP"],
+            "STORM": ["3.5 HP", "4.5 HP", "5.5 HP"],
+            "BÜYÜK MOTOR": ["7.5 HP", "10 HP", "12.5 HP", "15 HP"]
+        };
 
-<script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywG99MV5PU8vNuy6IAN0lpAmnl3lq9RCl5VpfLYb8fGqt7mk6G6c2jrFYpC_l3ZFVgrQ/exec";
-let myChart = null;
-
-function sendData(sonucDegeri) {
-    const operator = document.getElementById('operator').value;
-    const pno = document.getElementById('pNo').value;
-    const model = document.getElementById('model').value;
-    const hp = document.getElementById('hp').value;
-    const voltaj = document.getElementById('voltaj').value;
-    const montaj = document.getElementById('montaj').value;
-    const testKapama = document.getElementById('testKapama').checked ? "Evet" : "Hayır";
-    const rekor = document.getElementById('rekor').checked ? "Evet" : "Hayır";
-
-    if (!operator || !pno || !model || !hp || !voltaj) {
-        alert("Lütfen Operatör, P NO, Model, HP ve Voltaj alanlarını eksiksiz doldurun!");
-        return;
-    }
-
-    const durumDiv = document.getElementById('durum');
-    durumDiv.style.color = "#ffc107";
-    durumDiv.innerText = "Gönderiliyor...";
-
-    const data = {
-        pno: pno, operator: operator, model: model,
-        hp: hp, voltaj: voltaj, montaj: montaj,
-        sonuc: sonucDegeri, testKapama: testKapama, rekor: rekor
-    };
-
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-
-    setTimeout(() => {
-        durumDiv.style.color = "#4ade80";
-        durumDiv.innerText = "Test sonucu başarıyla kaydedildi!";
-        document.getElementById('pNo').value = "";
-        document.getElementById('pNo').focus();
-        verileriCek();
-    }, 800);
-}
-
-function verileriCek() {
-    fetch(SCRIPT_URL)
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('statToplam').innerText = data.toplam;
-            document.getElementById('statOnay').innerText = data.onay;
-            document.getElementById('statRet').innerText = data.ret;
-            grafikGuncelle(data.modeller);
-        })
-        .catch(err => console.log("Veri çekme hatası:", err));
-}
-
-function grafikGuncelle(modeller) {
-    const ctx = document.getElementById('uretimGrafik').getContext('2d');
-    const labels = Object.keys(modeller);
-    const values = Object.values(modeller);
-
-    if (myChart) {
-        myChart.destroy();
-    }
-
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels.length ? labels : ['Henüz Veri Yok'],
-            datasets: [{
-                label: 'Bugünkü Üretim Adedi',
-                data: values.length ? values : [0],
-                backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#0dcaf0'],
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { labels: { color: '#e0e0e0' } }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1, color: '#b0bec5' }, grid: { color: '#333' } },
-                x: { ticks: { color: '#b0bec5' }, grid: { display: false } }
+        function gucSecenekleriniGuncelle() {
+            const modelSelect = document.getElementById('model');
+            const gucSelect = document.getElementById('guc');
+            const secilenModel = modelSelect.value;
+            
+            gucSelect.innerHTML = '';
+            if (secilenModel && modelGucSecenekleri[secilenModel]) {
+                modelGucSecenekleri[secilenModel].forEach(guc => {
+                    const option = document.createElement('option');
+                    option.value = guc;
+                    option.textContent = guc;
+                    gucSelect.appendChild(option);
+                });
             }
         }
-    });
-}
 
-verileriCek();
-setInterval(verileriCek, 30000);
+        // Sayfa yüklendiğinde çalışacak dinleyiciler
+        document.addEventListener("DOMContentLoaded", function() {
+            const modelSelect = document.getElementById('model');
+            modelSelect.addEventListener('change', gucSecenekleriniGuncelle);
+            
+            // İlk açılışta FLORİDA güçlerini yükle
+            gucSecenekleriniGuncelle();
+            verileriCek();
+            setInterval(verileriCek, 30000);
+        });
 
-function startScanner() {
-    const readerDiv = document.getElementById('reader');
-    readerDiv.style.display = "block";
-    const html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-            document.getElementById('pNo').value = decodedText;
-            html5QrCode.stop().then(() => { readerDiv.style.display = "none"; });
-        },
-        () => {}
-    ).catch(err => {
-        alert("Kamera başlatılamadı: " + err);
-        readerDiv.style.display = "none";
-    });
-}
-</script>
+        function kamerayiAc() {
+            const readerDiv = document.getElementById('reader');
+            readerDiv.classList.toggle('hidden');
+            if (!readerDiv.classList.contains('hidden')) {
+                html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (decodedText) => {
+                        document.getElementById('pno').value = decodedText;
+                        html5QrCode.stop();
+                        readerDiv.classList.add('hidden');
+                    },
+                    (errorMessage) => {}
+                ).catch(err => { alert("Kamera başlatılamadı: " + err); readerDiv.classList.add('hidden'); });
+            } else {
+                if (html5QrCode) html5QrCode.stop().catch(e => {});
+            }
+        }
+
+        function grafikOlustur(labels, data) {
+            const ctx = document.getElementById('uretimGrafik').getContext('2d');
+            if (uretimChart) uretimChart.destroy();
+            uretimChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Model Bazlı Üretim Adedi',
+                        data: data,
+                        backgroundColor: '#06b6d4',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        async function verileriCek() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const result = await response.json();
+                if (result.status === "success") {
+                    document.getElementById('toplamSayac').innerText = result.toplam || 0;
+                    document.getElementById('onaySayac').innerText = result.onay || 0;
+                    document.getElementById('retSayac').innerText = result.ret || 0;
+                    const labels = Object.keys(result.modeller || {});
+                    const data = Object.values(result.modeller || {});
+                    grafikOlustur(labels.length ? labels : ['Veri Yok'], data.length ? data : [0]);
+                }
+            } catch (error) {
+                console.error("Veri çekme hatası:", error);
+            }
+        }
+
+        async function veriyiGonder(durumSonucu) {
+            const pno = document.getElementById('pno').value.trim();
+            const operator = document.getElementById('operator').value.trim();
+            const model = document.getElementById('model').value;
+            const guc = document.getElementById('guc').value;
+            const voltaj = document.getElementById('voltaj').value;
+
+            if (!pno || !operator) {
+                alert("Lütfen Operatör Adı ve P NO alanlarını doldurun!");
+                return;
+            }
+
+            const status = document.getElementById('status');
+            status.innerText = "Gönderiliyor...";
+            status.className = "text-sm font-medium px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 mt-2 md:mt-0";
+
+            const formData = {
+                pno: pno,
+                operator: operator,
+                model: model,
+                guc: guc,
+                voltaj: voltaj,
+                montaj: document.getElementById('montaj').value,
+                testKapama: document.getElementById('testKapama').checked ? "Evet" : "Hayır",
+                rekor: document.getElementById('rekor').checked ? "Evet" : "Hayır",
+                durum: durumSonucu
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                status.innerText = "Başarıyla Kaydedildi!";
+                status.className = "text-sm font-medium px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 mt-2 md:mt-0";
+                document.getElementById('pno').value = "";
+                
+                setTimeout(verileriCek, 1000);
+            } catch (error) {
+                status.innerText = "Kayıt Hatası!";
+                status.className = "text-sm font-medium px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 mt-2 md:mt-0";
+            } finally {
+                setTimeout(() => {
+                    status.innerText = "Sistem Hazır";
+                    status.className = "text-sm font-medium px-3 py-1 rounded-full bg-slate-800 text-slate-300 mt-2 md:mt-0 border border-slate-700";
+                }, 3000);
+            }
+        }
+    </script>
 </body>
 </html>
