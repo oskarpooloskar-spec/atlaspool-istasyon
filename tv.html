@@ -1,1 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlaspool - Canlı Üretim ve Test Andon Ekranı</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    </style>
+</head>
+<body class="min-h-screen p-6 flex flex-col justify-between">
 
+    <!-- ÜST BİLGİ & KURUMSAL HEADER -->
+    <header class="flex justify-between items-center bg-slate-900/90 border border-slate-800 px-8 py-5 rounded-2xl shadow-2xl backdrop-blur-md">
+        <div class="flex items-center gap-4">
+            <div class="bg-cyan-500/10 border border-cyan-500/30 px-4 py-2 rounded-xl">
+                <span class="text-cyan-400 font-black tracking-wider text-xl">ATLASPOOL</span>
+            </div>
+            <h1 class="text-2xl font-bold tracking-wide text-white">Pompa Test İstasyonu - Canlı İzleme Paneli</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="canliSaat" class="text-lg font-mono text-slate-300 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">--:--:--</div>
+            <div id="status" class="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Sistem Canlı
+            </div>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK: SAYAÇLAR VE DEV GRAFİK -->
+    <main class="my-6 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-center">
+        
+        <!-- SOL TARAF: İSTATİSTİK KARTLARI -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                <div class="text-sm font-semibold tracking-wider text-slate-400 uppercase">Bugünkü Toplam Test</div>
+                <div id="toplamSayac" class="text-6xl font-black text-white mt-3">0</div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-emerald-500"></div>
+                <div class="text-sm font-semibold tracking-wider text-emerald-400 uppercase">Onaylanan Pompa</div>
+                <div id="onaySayac" class="text-6xl font-black text-emerald-400 mt-3">0</div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-rose-500"></div>
+                <div class="text-sm font-semibold tracking-wider text-rose-400 uppercase">Ret / Hatalı Pompa</div>
+                <div id="retSayac" class="text-6xl font-black text-rose-400 mt-3">0</div>
+            </div>
+        </div>
+
+        <!-- SAĞ TARAF: DEV GRAFİK PANELİ -->
+        <div class="lg:col-span-8 bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between h-[520px]">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                <h2 class="text-xl font-bold text-cyan-400">Model Bazlı Anlık Üretim Dağılımı</h2>
+                <span class="text-xs text-slate-400">Her 10 saniyede bir otomatik yenilenir</span>
+            </div>
+            <div class="relative flex-1 w-full h-full">
+                <canvas id="uretimGrafik"></canvas>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ALT BİLGİ -->
+    <footer class="text-center text-slate-500 text-xs py-2 border-t border-slate-900">
+        Atlaspool Akıllı Üretim İzleme ve Test Otomasyonu &copy; 2026
+    </footer>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYwiqTCEsgAfp6vLeCStVvlxY9qKzCW1lx-Ciavb2lte_LSoDYgIrFqdHu7GbnxrvXFg/exec";
+        let uretimChart = null;
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('canliSaat').innerText = now.toLocaleTimeString('tr-TR');
+        }, 1000);
+
+        function grafikOlustur(labels, data) {
+            const ctx = document.getElementById('uretimGrafik').getContext('2d');
+            if (uretimChart) uretimChart.destroy();
+            
+            uretimChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Üretim Adedi',
+                        data: data,
+                        backgroundColor: '#06b6d4',
+                        borderColor: '#22d3ee',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(30, 41, 59, 0.8)' }, ticks: { color: '#94a3b8', font: { size: 14, weight: 'bold' } } },
+                        x: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 14, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        async function verileriCek() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const result = await response.json();
+                if (result.status === "success") {
+                    document.getElementById('toplamSayac').innerText = result.toplam || 0;
+                    document.getElementById('onaySayac').innerText = result.onay || 0;
+                    document.getElementById('retSayac').innerText = result.ret || 0;
+                    
+                    const labels = Object.keys(result.modeller || {});
+                    const data = Object.values(result.modeller || {});
+                    grafikOlustur(labels.length ? labels : ['Veri Yok'], data.length ? data : [0]);
+                }
+            } catch (error) {
+                console.error("Veri çekme hatası:", error);
+            }
+        }
+
+        verileriCek();
+        setInterval(verileriCek, 10000);
+    </script>
+</body>
+</html>
